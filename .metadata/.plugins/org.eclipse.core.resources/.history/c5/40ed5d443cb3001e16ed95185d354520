@@ -1,0 +1,65 @@
+package com.myweb.www.service;
+
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import com.myweb.www.repository.MemberDAO;
+import com.myweb.www.security.MemberVO;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Service
+@Slf4j
+public class MemberServiceImpl implements MemberService{
+
+	private final MemberDAO mdao;
+	
+	@Inject
+	BCryptPasswordEncoder passwordEncoder;
+	
+	@Inject
+	HttpServletRequest request;
+
+	@Override
+	public int register(MemberVO mvo) {
+		// TODO Auto-generated method stub
+		MemberVO tempMvo = mdao.getUser(mvo.getEmail());
+		if(tempMvo !=null) {
+			// 기존 Email이 있는 경우
+			return 0; // 실패경우로 처리
+		}
+		// 아이디가 중복되지 않는다면 회원가입을 진행
+		// password가 null이거나 값이 없다면 가입불가
+		if(mvo.getEmail() == null || mvo.getEmail().length() == 0) {
+			return 0;
+		}
+		if(mvo.getPwd() == null || mvo.getPwd().length() == 0) {
+			return 0;
+		}
+		//회원가입 진행
+		//password는 암호화 하여 가입
+		// 암호화(encode) / matchs(입력된 비번, 암ㅇ호화된 비번) => ㅇtrue/false
+		
+		String pw = mvo.getPwd();
+		
+		String encodePw = passwordEncoder.encode(pw);	// 패스워드 암호화
+		
+		mvo.setPwd(encodePw);
+		
+		// 회원가입
+		int isOk = mdao.insert(mvo);
+		
+		return isOk;
+	}
+}
+     
+
+
+
+
+
+
+

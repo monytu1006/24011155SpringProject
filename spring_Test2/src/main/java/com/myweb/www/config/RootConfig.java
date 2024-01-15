@@ -1,0 +1,105 @@
+package com.myweb.www.config;
+
+import javax.sql.DataSource;
+
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.mybatis.spring.SqlSessionFactoryBean;
+import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
+@MapperScan(basePackages = {"com.myweb.www.repository"})
+@ComponentScan(basePackages = {"com.myweb.www.service"})
+@EnableTransactionManagement	
+@EnableScheduling	// 스케줄러에 활용
+@Configuration
+public class RootConfig {
+	//DB설정부분
+	//hikariCP사용   /  log4jdbc-log4j2 사용
+	
+	@Autowired
+	ApplicationContext applicationContext;	// mapper위치를 알려줘야 할떄를 위한 셋팅
+	
+	
+	/* 참고 : 지난 spring프로젝트의 root-context.xml 설정
+	 <!-- Root Context: defines shared resources visible to all other web components -->
+	   <bean id="dataSource"
+	      class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+	      <property name="driverClassName" value="com.mysql.cj.jdbc.Driver"></property>
+	      <property name="url" value="jdbc:mysql://localhost:3306/springtest"></property>
+	      <property name="username" value="springUser"></property>
+	      <property name="password" value="mysql"></property>
+	   </bean>
+
+	   <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+	      <property name="dataSource" ref="dataSource" />
+	      <property name="mapperLocations" value="classpath:mappers/*Mapper.xml" />
+	   </bean>
+	   <mybatis-spring:scan base-package="com.ezen.www.repository"></mybatis-spring:scan>
+	</beans>
+	*/
+	@Bean
+	public DataSource dataSource() {
+		HikariConfig hikariConfig = new HikariConfig();
+		// log4jdbc-log4j2
+		hikariConfig.setDriverClassName("net.sf.log4jdbc.sql.jdbcapi.DriverSpy");
+		hikariConfig.setJdbcUrl("jdbc:log4jdbc:mysql://localhost:3306/mywebdb");
+		hikariConfig.setUsername("mywebUser");
+		hikariConfig.setPassword("mysql");
+		
+		hikariConfig.setMaximumPoolSize(5); //최대 커넥션 개수
+		hikariConfig.setMinimumIdle(5); //최소 유휴 커넥션 개수(위의 값과 같은 값으로 설정)
+		
+		hikariConfig.setConnectionTestQuery("SELECT now()"); //test 쿼리문
+		hikariConfig.setPoolName("springHikariCP");
+		
+		//추가 설정
+		// "hikari 최적화" 검색 설정 설명 찾아보기
+				//https://velog.io/@mohai2618/%EC%84%B1%EB%8A%A5%EC%9D%84-%EC%B5%9C%EC%A0%81%ED%99%94-%ED%95%B4%EB%B3%B4%EC%9E%90-HikariCP-%ED%8E%B8
+		
+		//cachePrepStmts : cache 사용 여부 설정 
+		hikariConfig.addDataSourceProperty("dataSource.cachePrepStmts", "true");
+		//mysql 드라이버가 연결당 cache statement의 수에 관한 설정 : 250 ~ 500사이 권장
+		hikariConfig.addDataSourceProperty("dataSource.prepStmtCacheSize", "250");
+		//connection 당 캐싱할 preparedStatement의 개수 지정 옵션 : default 256
+		hikariConfig.addDataSourceProperty("dataSource.prepStmtCacheSqlLimit", "true"); //기본값으로 설정
+		//mysql 서버에서 최신 이슈가 있을 경우 지원받는 설정 
+		hikariConfig.addDataSourceProperty("dataSource.useServerPrepStmts", "true");
+		
+		HikariDataSource hikariDataSource = new HikariDataSource(hikariConfig);
+		
+		return hikariDataSource;
+	}
+	
+	@Bean
+	public SqlSessionFactory sqlSessionFactory() throws Exception {
+		SqlSessionFactoryBean sqlFactoryBean = new SqlSessionFactoryBean();
+		
+		sqlFactoryBean.setDataSource(dataSource());
+		sqlFactoryBean.setMapperLocations(
+				applicationContext.getResources("classpath:/mappers/*.xml"));
+		
+		sqlFactoryBean.setConfigLocation(
+				applicationContext.getResource("classpath:/MybatisConfig.xml"));
+		
+		return sqlFactoryBean.getObject();	
+		
+	}
+	
+	//트렌젝션 메니저 빈 설정
+	@Bean
+	public DataSourceTransactionManager transactionManger() {
+		return new DataSourceTransactionManager(dataSource());
+	}
+	
+	
+}

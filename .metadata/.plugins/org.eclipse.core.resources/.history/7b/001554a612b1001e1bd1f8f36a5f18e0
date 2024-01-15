@@ -1,0 +1,17 @@
+	<div class="container-md">
+	<br>
+	<h2>Board register Page</h2>
+	<br>
+	<form action="/board/register" method="post" enctype="multipart/form-data">
+		<div class="mb-3">
+			<label for="email" class="form-label">Email</label> 
+			<input type="text" class="form-control" name="title" id="email" placeholder="email">
+		</div>
+		<div class="mb-3">
+			<label for="writer" class="form-label">writer</label>
+			<input type="text" class="form-control" name="writer" id="writer" placeholder="writer">
+		</div>
+		<div class="mb-3">
+			<label for="content" class="form-label">content</label>
+			<textarea class="form-control" name="content" id="content" rows="3"></textarea>
+		</div>

@@ -1,0 +1,19 @@
+package com.myweb.www.security;
+
+public class MemberVO {
+//	create table member(
+//			email varchar(100) not null,
+//			pwd varchar(100) not null,
+//			nick_name varchar(100) not null,
+//			reg_at datetime default now(),
+//			last_login datetime default null,
+//			primary key(email));
+	
+	private String email;
+	private String pwd;
+	private String nick_name;
+	private String regAT;
+	private String lasLogin;
+	
+	
+}

@@ -1,0 +1,15 @@
+package com.myweb.www.service;
+
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+
+import com.myweb.www.repository.MemberDAO;
+
+public class MemberServiceImpl implements MemberService{
+	
+	private MemberDAO mdao;
+	
+	@Inject
+	HttpServletRequest request;
+	
+}

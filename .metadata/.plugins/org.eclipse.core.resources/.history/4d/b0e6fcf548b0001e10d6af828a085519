@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.myweb.www.repository.BoardDAO">
+
+	<insert id="insert">
+		insert into board(title, writer, content)
+		values(#{title}, #{writer}, #{content})
+	</insert>
+
+	<select id="getList" resultType="com.myweb.www.domain.BoardVO">
+		select * from board
+		<include refid="search"></include>
+		order by bno desc
+		limit #{pageStart}, #{qty} 
+	</select>
+	
+	<update id="readCount">
+		update board set read_count = read_count +1 where bno = #{bno} 
+	</update>
+
+	<select id="getDetail" resultType="com.myweb.www.domain.BoardVO">
+		select * from board where bno = #{bno}
+	</select>
+	
+	<update id="update">
+	update board set title=#{title}, content=#{content}, reg_at = now(),
+	read_count = read_count-2
+	where bno=#{bno}
+	</update>
+
+	<delete id="delete">
+		delete from board where bno=#{bno}
+	</delete>
+	
+	<select id="getTotalCount" resultType="int">
+		select count(bno) from board <include refid="search"></include>
+	</select>
+
+	<select id="selectOneBno" resultType="long">
+		select max(bno) from board
+	</select>
+	
+	<select id="updateCommentqty">
+		update board b set cmt_qty = ()select count(*) from comment where bno =b.bno
+	</select>
+	
+	
+	<select id="updateFileqty">
+		update board set has_file
+	</select>
+	
+	
+	
+
+	
+	
+<!-- PageVO에서 가져온 -->
+    
+<!-- t,w,c같은 하나만 할 경우는 foreach를 사용할 필요가 없으나 -->
+					
+<!-- .tostring로 선언 안할 셩우 text로 취급 못받아 에러 -->
+	
+<!-- 
+prev일 경우 or.. or.. or... 와 같은 방식으로 작성됨
+suffix경우 ..or ..or ...or 와 같은 방식을 작성됨
+따라서 <trim prefix="or">일 경우 앞의 trim에 prefixOverrides="or"로 작성하여 제일 같에 붙은 or을 제거해 준다 
+반대의 경우는 suffix... 를 붙여야 겠지?
+-->
+	
+	
+	<sql id="search">
+		<if test="type!=null">
+			<trim prefix="where(" suffix=")" prefixOverrides="or"> 
+				<foreach collection="typeToArray" item="type">
+					<trim prefix="or">
+						<choose>
+							<when test="type=='t'.tostring">
+								title like concat('%', #{keyword}, '%')
+							</when>
+							<when test="type=='w'.tostring">
+								writer like concat('%', #{keyword}, '%')
+							</when>
+							<when test="type=='c'.tostring">
+								content like concat('%', #{keyword}, '%')
+							</when>
+						</choose>
+					</trim>
+				</foreach>
+			</trim>
+		</if>
+	</sql>
+	
+</mapper>
+
+
+<!-- DOCTYPE 입력하기 -->
+<!-- https://mybatis.org/mybatis-3/ko/getting-started.html -->
+<!-- mybatis - 시작하기 - 매핑된 SQL 구문 살펴보기 -->
+
+

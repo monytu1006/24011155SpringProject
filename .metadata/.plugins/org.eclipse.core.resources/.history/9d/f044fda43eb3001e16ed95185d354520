@@ -1,0 +1,26 @@
+package com.myweb.www.service;
+
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.stereotype.Service;
+
+import com.myweb.www.repository.MemberDAO;
+import com.myweb.www.security.MemberVO;
+
+@Service
+public class MemberServiceImpl implements MemberService{
+	
+	private MemberDAO mdao;
+	
+//	@Inject
+//	HttpServletRequest request;
+
+	@Override
+	public int register(MemberVO mvo) {
+		int isOK = mdao.insert(mvo);
+		
+		return mdao.insertAuthInit(mvo);
+	}
+	
+}
